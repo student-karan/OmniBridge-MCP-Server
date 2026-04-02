@@ -1,0 +1,13 @@
+{
+	"servers": {
+		"omnibridge-mcp": {
+			"type": "stdio",
+			"command": "npm",
+			"args": [
+				"run",
+				"dev:mcp"
+			]
+		}
+	},
+	"inputs": []
+}

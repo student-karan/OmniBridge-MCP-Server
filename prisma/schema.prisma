@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum InteractionStatus {
+  success
+  error
+}
+
+model ToolInteraction {
+  id                     Int               @id @default(autoincrement())
+  toolName               String            @db.VarChar(100)
+  executorUserIdentifier String            @db.VarChar(100)
+  targetOwner            String?           @db.VarChar(100)
+  targetRepo             BigInt?
+  input                  String
+  output                 String
+  status                 InteractionStatus
+  executedAt             DateTime          @default(now())
+
+  @@index([executorUserIdentifier])
+  @@map("tool_interactions")
+}

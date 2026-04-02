@@ -1,0 +1,35 @@
+{
+  "name": "omnibridge-mcp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.js",
+  "bin": {
+    "omnibridge-mcp": "dist/server.js"
+  },
+  "scripts": {
+    "dev:mcp": "tsx src/server.ts",
+    "start": "node dist/server.js",
+    "build": "tsc -p .",
+    "check": "tsc -p . --noEmit",
+    "server:inspect": "set DANGEROUSLY_OMIT_AUTH=true && npx @modelcontextprotocol/inspector npm run dev:mcp"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "@octokit/rest": "^22.0.1",
+    "@prisma/adapter-mariadb": "^7.5.0",
+    "@prisma/client": "^7.5.0",
+    "chalk": "^5.6.2",
+    "dotenv": "^17.3.1",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/inspector": "^0.21.1",
+    "@types/node": "^25.5.0",
+    "prisma": "^7.5.0",
+    "tsx": "^4.21.0"
+  }
+}
