@@ -3,11 +3,12 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import chalk from "chalk";
-import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema } from "./utils/types.js";
+import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema } from "./utils/types.js";
 import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, starRepo, unStarRepo, updateRepoMetadata } from "./controllers/Repo.js";
 import { createIssue, closeIssue, updateIssue, listAllIssues, getIssueDetails, addIssueComment } from "./controllers/Issue.js";
 import { extractErrorMessage } from "./utils/utility.js";
 import { getRepoCloneCount, getTopReferrers, getRepoViews, getRepoTopPaths, getRepoContributorStats, getRepoCommitActivity } from "./controllers/traffic&analytics.js";
+import { getMyProfile, getUser, listFollowers, listFollowing } from "./controllers/users&profile.js";
 
 // Polyfill for BigInt serialization in JSON.stringify (Required for GitHub IDs)
 (BigInt.prototype as any).toJSON = function () {
@@ -530,6 +531,110 @@ server.registerTool(
             return {
                 content: [{ type: "text", text: JSON.stringify(commit_activity) }],
                 structuredContent: { commit_activity }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+//--- User and Profile Tools  ---//
+server.registerTool(
+    "get_my_profile",
+    {
+        title: "Get My Profile",
+        description: "This tool gets you all the information about the current user's GitHub account.",
+        outputSchema: UserProfileSchema.shape
+    }, async () => {
+        try {
+            const userDetails = await getMyProfile();
+            return {
+                content: [{ type: "text", text: JSON.stringify(userDetails) }],
+                structuredContent: userDetails
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "list_followers",
+    {
+        title: "List Followers",
+        description: "This tool gives you the name of all the Github users who follow the current User.",
+        inputSchema : z.object({
+            per_page: z.number().int().positive().describe("Number of followers to return per page."),
+            page: z.number().int().nonnegative().describe("Page number of the results to fetch.")
+        }),
+        outputSchema: z.object({
+            followers: z.array(z.string())
+        }).shape
+    }, async (args) => {
+        try {
+            const followers = await listFollowers(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(followers) }],
+                structuredContent: { followers }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "list_following",
+    {
+        title: "List Following",
+        description: "This tool gives you the name of all the Github users who are followed by the current User.",
+        inputSchema : z.object({
+            per_page: z.number().int().positive().describe("Number of followers to return per page."),
+            page: z.number().int().nonnegative().describe("Page number of the results to fetch.")
+        }),
+        outputSchema: z.object({
+            followers: z.array(z.string())
+        }).shape
+    }, async (args) => {
+        try {
+            const following = await listFollowing(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(following) }],
+                structuredContent: { following }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "get_user",
+    {
+        title: "Get User",
+        description: "This tool gets information about a specific GitHub user.",
+        inputSchema : z.object({
+            username: z.string().describe("The username of the GitHub user whose details you want to fetch.")
+        }).shape,
+        outputSchema: UserProfileSchema.shape
+    }, async (args) => {
+        try {
+            const userDetails = await getUser(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(userDetails) }],
+                structuredContent: userDetails
             }
         } catch (err) {
             return {

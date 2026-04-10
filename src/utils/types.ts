@@ -161,3 +161,21 @@ export const CommitActivityOutputSchema = z.array(z.object({
 export type GetContributorsStatsResponse = Endpoints["GET /repos/{owner}/{repo}/stats/contributors"]["response"];
 
 export type ContributorStat = Extract<GetContributorsStatsResponse["data"], any[]>[number];
+
+// Schema to capture the user profile core data
+export const UserProfileSchema = z.object({
+    login: z.string().describe("The GitHub username."),
+    id: z.number().int().nonnegative(),
+    avatar_url: z.string().url(),
+    html_url: z.string().url(),
+    name: z.string().nullable(),
+    company: z.string().nullable(),
+    blog: z.string().nullable(),
+    location: z.string().nullable(),
+    email: z.string().email().nullable(),
+    bio: z.string().nullable(),
+    public_repos: z.number().int().nonnegative(),
+    followers: z.number().int().nonnegative(),
+    following: z.number().int().nonnegative(),
+    created_at: z.string().datetime(),
+});
