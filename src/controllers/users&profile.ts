@@ -30,7 +30,7 @@ export async function getMyProfile() {
 }
 
 // Function to list all of the user followers 
-export async function listFollowers({ per_page, page }: { per_page: number, page: number }) {
+export async function listFollowers({ per_page, page }: { per_page?: number, page?: number }) {
     const logInput = "User wants the list of all his followers."
     try {
         const { data } = await github.rest.users.listFollowersForAuthenticatedUser({ per_page, page });
@@ -42,7 +42,7 @@ export async function listFollowers({ per_page, page }: { per_page: number, page
             "success",
             repo_owner
         )
-        return data.map(user => user.name);
+        return data.map(user => user.name).filter(name => typeof name === "string");
     } catch (err) {
         let errorMsg = extractErrorMessage(err) || "An unknown error occured.";
         await logInteraction(
@@ -57,7 +57,7 @@ export async function listFollowers({ per_page, page }: { per_page: number, page
 }
 
 // Function to list all Users followed by the user  
-export async function listFollowing({ per_page, page }: { per_page: number, page: number }) {
+export async function listFollowing({ per_page, page }: { per_page?: number, page?: number }) {
     const logInput = "User wants the list of all people he/she is follwing."
     try {
         const { data } = await github.rest.users.listFollowedByAuthenticatedUser({ per_page, page });
@@ -69,7 +69,7 @@ export async function listFollowing({ per_page, page }: { per_page: number, page
             "success",
             repo_owner
         )
-        return data.map(user => user.name);
+        return data.map(user => user.name).filter(name => typeof name === "string");
     } catch (err) {
         let errorMsg = extractErrorMessage(err) || "An unknown error occured.";
         await logInteraction(

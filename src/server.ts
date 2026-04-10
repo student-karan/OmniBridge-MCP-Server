@@ -3,12 +3,14 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import chalk from "chalk";
-import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema } from "./utils/types.js";
+import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema, FollowingSchema, ListNotificationsInputSchema, NotificationSchema } from "./utils/types.js";
 import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, starRepo, unStarRepo, updateRepoMetadata } from "./controllers/Repo.js";
 import { createIssue, closeIssue, updateIssue, listAllIssues, getIssueDetails, addIssueComment } from "./controllers/Issue.js";
 import { extractErrorMessage } from "./utils/utility.js";
 import { getRepoCloneCount, getTopReferrers, getRepoViews, getRepoTopPaths, getRepoContributorStats, getRepoCommitActivity } from "./controllers/traffic&analytics.js";
 import { getMyProfile, getUser, listFollowers, listFollowing } from "./controllers/users&profile.js";
+import { listNotifications, MarkNotificationRead } from "./controllers/notifications.js";
+import { repo_owner } from "./lib/github.js";
 
 // Polyfill for BigInt serialization in JSON.stringify (Required for GitHub IDs)
 (BigInt.prototype as any).toJSON = function () {
@@ -569,10 +571,7 @@ server.registerTool(
     {
         title: "List Followers",
         description: "This tool gives you the name of all the Github users who follow the current User.",
-        inputSchema : z.object({
-            per_page: z.number().int().positive().describe("Number of followers to return per page."),
-            page: z.number().int().nonnegative().describe("Page number of the results to fetch.")
-        }),
+        inputSchema: FollowingSchema.shape,
         outputSchema: z.object({
             followers: z.array(z.string())
         }).shape
@@ -597,10 +596,7 @@ server.registerTool(
     {
         title: "List Following",
         description: "This tool gives you the name of all the Github users who are followed by the current User.",
-        inputSchema : z.object({
-            per_page: z.number().int().positive().describe("Number of followers to return per page."),
-            page: z.number().int().nonnegative().describe("Page number of the results to fetch.")
-        }),
+        inputSchema: FollowingSchema.shape,
         outputSchema: z.object({
             followers: z.array(z.string())
         }).shape
@@ -625,7 +621,7 @@ server.registerTool(
     {
         title: "Get User",
         description: "This tool gets information about a specific GitHub user.",
-        inputSchema : z.object({
+        inputSchema: z.object({
             username: z.string().describe("The username of the GitHub user whose details you want to fetch.")
         }).shape,
         outputSchema: UserProfileSchema.shape
@@ -635,6 +631,56 @@ server.registerTool(
             return {
                 content: [{ type: "text", text: JSON.stringify(userDetails) }],
                 structuredContent: userDetails
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+//--- Notifications & Activity Tools  ---//
+server.registerTool(
+    "list_notifications",
+    {
+        title: "List Notifications",
+        description: "This tool fetches all the notifications of the current user.",
+        inputSchema: ListNotificationsInputSchema.shape,
+        outputSchema: z.object({
+            notifications: z.array(NotificationSchema)
+        }).shape
+    }, async (args) => {
+        try {
+            const notifications = await listNotifications(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(notifications) }],
+                structuredContent: { notifications }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "mark_notification_read",
+    {
+        title: "Mark Notifications Read",
+        description: "This tool allows you to mark a specific notification as read.",
+        inputSchema: z.object({
+            thread_id : z.number().int().nonnegative()
+        }).shape,
+    }, async (args) => {
+        try {
+            await MarkNotificationRead(args);
+            return {
+                content: [{ type: "text", text: `${repo_owner} Notification ${args.thread_id} is successfully marked as read.` }],
+
             }
         } catch (err) {
             return {

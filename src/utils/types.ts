@@ -179,3 +179,36 @@ export const UserProfileSchema = z.object({
     following: z.number().int().nonnegative(),
     created_at: z.string().datetime(),
 });
+
+export const FollowingSchema = z.object({
+    per_page: z.number().int().positive().describe("Number of followers to return per page.").optional(),
+    page: z.number().int().nonnegative().describe("Page number of the results to fetch.").optional()
+})
+
+export const NotificationSchema = z.object({
+    id: z.string().describe("The unique ID of the notification thread."),
+    unread: z.boolean(),
+    reason: z.string().describe("The reason for the notification (e.g., 'mention', 'assign', 'author')."),
+    updated_at: z.string().datetime(),
+    subject: z.object({
+        title: z.string(),
+        url: z.string().url().describe("The API URL for the subject (e.g., the Issue or PR)."),
+        type: z.string().describe("The type of subject (e.g., 'Issue', 'PullRequest')."),
+    }),
+    repository: z.object({
+        name: z.string(),
+        full_name: z.string(),
+        owner: z.object({ login: z.string() }),
+    }),
+});
+
+export const ListNotificationsInputSchema = z.object({
+    all: z.boolean().optional().describe("If true, show notifications that have already been read.").optional(),
+    participating: z.boolean().optional().describe("If true, only show notifications you are directly involved in.").optional(),
+    since: z.string().datetime().optional().describe("Only show notifications updated after this time (ISO 8601).").optional(),
+    before: z.string().datetime().optional().describe("Only show notifications updated before this time (ISO 8601).").optional(),
+    per_page: z.number().int().positive().optional().describe("Number of notifications to return per page (max 100).").optional(),
+    page: z.number().int().positive().optional().describe("Page number of the results to fetch.").optional(),
+});
+
+export type ListNotificationsInputType = z.infer<typeof ListNotificationsInputSchema>;
