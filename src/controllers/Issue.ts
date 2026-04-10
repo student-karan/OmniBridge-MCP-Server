@@ -1,5 +1,5 @@
 import { logInteraction } from "../db/logger.js";
-import { github, repo_owner } from "../lib/github.js";
+import { github } from "../lib/github.js";
 import repoExists, { extractErrorMessage } from "../utils/utility.js";
 import { createIssueInput, updateIssueInput, listIssuesInput } from "../utils/types.js";
 
@@ -18,7 +18,6 @@ export async function createIssue(args: createIssueInput) {
             "create_issue",
             logInput,
             `Issue "${data.id}" created in ${args.owner}/${args.repo}`,
-            repo_owner,
             "success",
             args.owner,
             targetRepo
@@ -38,7 +37,6 @@ export async function createIssue(args: createIssueInput) {
             "create_issue",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             args.owner,
             targetRepo
@@ -67,7 +65,6 @@ export async function closeIssue(owner: string, repo: string, issue_number: numb
             "close_issue",
             logInput,
             `Issue "${issue_number}" closed in ${owner}/${repo}.`,
-            repo_owner,
             "success",
             owner,
             targetRepo
@@ -79,7 +76,6 @@ export async function closeIssue(owner: string, repo: string, issue_number: numb
             "close_issue",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             owner,
             targetRepo
@@ -103,7 +99,6 @@ export async function updateIssue(args: updateIssueInput) {
             "update_issue",
             logInput,
             `Issue "${args.issue_number}" updated in ${args.owner}/${args.repo}.`,
-            repo_owner,
             "success",
             args.owner,
             targetRepo
@@ -115,7 +110,6 @@ export async function updateIssue(args: updateIssueInput) {
             "update_issue",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             args.owner,
             targetRepo
@@ -159,7 +153,6 @@ export async function listAllIssues(args: listIssuesInput) {
             "list_issues",
             logInput,
             `Issues listed from ${args.owner}/${args.repo}.`,
-            repo_owner,
             "success",
             args.owner,
             targetRepo
@@ -173,7 +166,6 @@ export async function listAllIssues(args: listIssuesInput) {
             "list_issues",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             args.owner,
             targetRepo
@@ -201,7 +193,6 @@ export async function getIssueDetails(owner: string, repo: string, issue_number:
             "get_issue_details",
             logInput,
             `Issue "${issue_number}" in ${owner}/${repo}. is successfully fetched.`,
-            repo_owner,
             "success",
             owner,
             targetRepo
@@ -228,7 +219,6 @@ export async function getIssueDetails(owner: string, repo: string, issue_number:
             "get_issue_details",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             owner,
             targetRepo
@@ -257,7 +247,6 @@ export async function addIssueComment(owner: string, repo: string, issue_number:
             "add_issue_comment",
             logInput,
             `Comment added in issue "${issue_number}" of Repo ${owner}/${repo}`,
-            repo_owner,
             "success",
             owner,
             targetRepo
@@ -269,7 +258,6 @@ export async function addIssueComment(owner: string, repo: string, issue_number:
             "add_issue_comment",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             owner,
             targetRepo

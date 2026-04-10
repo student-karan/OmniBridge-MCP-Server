@@ -3,10 +3,11 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import chalk from "chalk";
-import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema } from "./utils/types.js";
-import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, renameRepo, starRepo, unStarRepo, updateRepoDescription } from "./controllers/repo.js";
+import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema } from "./utils/types.js";
+import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, starRepo, unStarRepo, updateRepoMetadata } from "./controllers/Repo.js";
 import { createIssue, closeIssue, updateIssue, listAllIssues, getIssueDetails, addIssueComment } from "./controllers/Issue.js";
 import { extractErrorMessage } from "./utils/utility.js";
+import { getRepoCloneCount, getTopReferrers, getRepoViews, getRepoTopPaths, getRepoContributorStats, getRepoCommitActivity } from "./controllers/traffic&analytics.js";
 
 // Polyfill for BigInt serialization in JSON.stringify (Required for GitHub IDs)
 (BigInt.prototype as any).toJSON = function () {
@@ -67,45 +68,21 @@ server.registerTool(
 );
 
 server.registerTool(
-    "update_repo_description",
+    "update_repo_metadata",
     {
-        title: "Update Repository Description",
-        description: "Update the description of the requested repository.",
+        title: "Update Repository Metadata",
+        description: "Update the Metadata of the requested repository.",
         inputSchema: z.object({
             repo: z.string().describe("The repository whose description user want to update."),
-            desc: z.string().describe("New description of the repository. ")
+            desc: z.string().describe("New description of the repository.").optional(),
+            newName: z.string().describe("New name for the repository.").optional()
         }).shape
-    }, async ({ repo, desc }) => {
+    }, async ({ repo, newName, desc }) => {
         try {
-            await updateRepoDescription(repo, desc);
+            await updateRepoMetadata(repo, newName, desc);
 
             return {
-                content: [{ type: "text", text: "Repository description updated successfully." }]
-            }
-        } catch (err) {
-            return {
-                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occurred." }],
-                isError: true
-            }
-        }
-    }
-);
-
-server.registerTool(
-    "rename_repo",
-    {
-        title: "Rename a Repository",
-        description: "Update the name of an existing repository.",
-        inputSchema: z.object({
-            repo: z.string().describe("The repository whose name the user wants to change."),
-            newName: z.string().describe("New name for the repository.")
-        }).shape
-    }, async ({ repo, newName }) => {
-        try {
-            await renameRepo(repo, newName);
-
-            return {
-                content: [{ type: "text", text: "Repository renamed successfully." }]
+                content: [{ type: "text", text: "Repository Metadata updated successfully." }]
             }
         } catch (err) {
             return {
@@ -172,7 +149,7 @@ server.registerTool(
         title: "Get Repository Details",
         description: "Fetch the details of the repository user requested.",
         inputSchema: z.object({
-            owner: z.string().describe("The user to whom the repository belongs."),
+            owner: z.string().describe("The user to whom the repository belongs.").optional(),
             repo: z.string().describe("Repository who details the user wants.")
         }).shape,
         outputSchema: RepoDetailsSchema.shape
@@ -198,7 +175,7 @@ server.registerTool(
         title: "Fork a repository.",
         description: "Forking a repository user wants.",
         inputSchema: z.object({
-            owner: z.string().describe("The owner of the repository."),
+            owner: z.string().describe("The owner of the repository.").optional(),
             repo: z.string().describe("The repository user wants to fork."),
             my_fork_name: z.string().describe("The Fork name for the repository.")
         }).shape,
@@ -224,7 +201,7 @@ server.registerTool(
         title: "Star a repository.",
         description: "Starring a repository user wants.",
         inputSchema: z.object({
-            owner: z.string().describe("The owner of the repository."),
+            owner: z.string().describe("The owner of the repository.").optional(),
             repo: z.string().describe("The repository user wants to star.")
         }).shape,
     }, async ({ owner, repo }) => {
@@ -249,7 +226,7 @@ server.registerTool(
         title: "Unstar a repository.",
         description: "Unstarring a repository user wants.",
         inputSchema: z.object({
-            owner: z.string().describe("The owner of the repository."),
+            owner: z.string().describe("The owner of the repository.").optional(),
             repo: z.string().describe("The repository user wants to unstar.")
         }).shape,
     }, async ({ owner, repo }) => {
@@ -406,6 +383,163 @@ server.registerTool(
         }
     }
 );
+
+//--- Traffic and Anayltics Tools  ---//
+server.registerTool(
+    "get_repo_views",
+    {
+        title: "Get Repo views",
+        description: "This tool is used to get the view count of a repository. \n Note : It will only work if you are the owner of the Repository or a collaborator with push access.",
+        inputSchema: RepoViewsInputSchema.shape,
+        outputSchema: RepoViewsOutputSchema.shape
+    }, async (args) => {
+        try {
+            const view_count = await getRepoViews(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(view_count) }],
+                structuredContent: view_count
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "get_repo_clone_count",
+    {
+        title: "Get Repo clone count",
+        description: "This tool is used to get the clone count of a repository. \n Note : It will only work if you are the owner of the Repository or a collaborator with push access.",
+        inputSchema: RepoCloneCountInputSchema.shape,
+        outputSchema: RepoCloneCountOutputSchema.shape
+    }, async (args) => {
+        try {
+            const clone_count = await getRepoCloneCount(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(clone_count) }],
+                structuredContent: clone_count
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "get_top_referrers",
+    {
+        title: "Get Top Referrers",
+        description: "This tool is used to find out Where repo traffic is coming from.",
+        inputSchema: TrafficandStatsSchema.shape,
+        outputSchema: z.object({
+            top_referrers: z.array(z.object({
+                referrer: z.string(),
+                count: z.number().int().nonnegative(),
+                uniques: z.number().int().nonnegative(),
+            }))
+        }).shape
+    }, async (args) => {
+        try {
+            const top_referrers = await getTopReferrers(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(top_referrers) }],
+                structuredContent: { top_referrers }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "get_top_paths",
+    {
+        title: "Get Top Paths",
+        description: "This tool is used to find out the most visited pages in the repo.",
+        inputSchema: TrafficandStatsSchema.shape,
+        outputSchema: z.object({
+            top_paths: z.array(z.object({
+                path: z.string(),
+                title: z.string(),
+                count: z.number().int().nonnegative(),
+                uniques: z.number().int().nonnegative(),
+            }))
+        }).shape
+    }, async (args) => {
+        try {
+            const top_paths = await getRepoTopPaths(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(top_paths) }],
+                structuredContent: { top_paths }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "get_contributor_stats",
+    {
+        title: "Get Contributor Stats",
+        description: "This tool gives a detailed breakdown of every person who has ever committed code to the repository.",
+        inputSchema: TrafficandStatsSchema.shape,
+        outputSchema: z.object({
+            contributor_stats: ContributorStatsOutputSchema
+        }).shape
+    }, async (args) => {
+        try {
+            const contributor_stats = await getRepoContributorStats(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(contributor_stats) }],
+                structuredContent: { contributor_stats }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "get_commit_activity",
+    {
+        title: "Get Commit Activity",
+        description: "This tool gives you the heartbeat of the repository for the last one year (52 weeks).",
+        inputSchema: TrafficandStatsSchema.shape,
+        outputSchema: z.object({
+            commit_activity: CommitActivityOutputSchema
+        }).shape
+    }, async (args) => {
+        try {
+            const commit_activity = await getRepoCommitActivity(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(commit_activity) }],
+                structuredContent: { commit_activity }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
 
 (async () => {
     const transport = new StdioServerTransport();

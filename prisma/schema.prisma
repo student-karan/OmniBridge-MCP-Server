@@ -20,7 +20,6 @@ enum InteractionStatus {
 model ToolInteraction {
   id                     Int               @id @default(autoincrement())
   toolName               String            @db.VarChar(100)
-  executorUserIdentifier String            @db.VarChar(100)
   targetOwner            String?           @db.VarChar(100)
   targetRepo             BigInt?
   input                  String
@@ -28,6 +27,6 @@ model ToolInteraction {
   status                 InteractionStatus
   executedAt             DateTime          @default(now())
 
-  @@index([executorUserIdentifier])
+  @@index([toolName])
   @@map("tool_interactions")
 }

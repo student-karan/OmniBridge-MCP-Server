@@ -20,7 +20,6 @@ export async function createRepo(repo: string, visibility: visibility, desc?: st
             "create_repo",
             logInput,
             `Repository with name : ${repo} was successfully created`,
-            repo_owner,
             "success",
             repo_owner,
             BigInt(repository.data.id)
@@ -33,7 +32,6 @@ export async function createRepo(repo: string, visibility: visibility, desc?: st
             "create_repo",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             repo_owner,
             null
@@ -58,7 +56,6 @@ export async function deleteRepo(repo: string) {
             "delete_repo",
             logInput,
             `Repository with name : ${repo} was successfully deleted`,
-            repo_owner,
             "success",
             repo_owner,
             BigInt(check.id)
@@ -70,7 +67,6 @@ export async function deleteRepo(repo: string) {
             "delete_repo",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             repo_owner,
             null
@@ -79,10 +75,10 @@ export async function deleteRepo(repo: string) {
     }
 }
 
-// Function to update a Repo description
-export async function updateRepoDescription(repo: string, desc: string) {
+// Function to update a Repo metadata
+export async function updateRepoMetadata(repo: string, newName? : string, desc?: string) {
     let targetRepo: null | bigint = null;
-    let logInput = `User want to update the description of a repo with name : ${repo} to ${desc}.`;
+    let logInput = `User want to update the metadata of repo ${repo}`;
     try {
         const check = await repoExists(repo_owner, repo);
         if (!check) {
@@ -91,14 +87,14 @@ export async function updateRepoDescription(repo: string, desc: string) {
         targetRepo = BigInt(check.id);
         await github.rest.repos.update({
             owner: repo_owner,
+            name : newName,
             repo,
             description: desc
         });
         await logInteraction(
-            "update_repo_description",
+            "update_repo_metadata",
             logInput,
-            `Repository with name : ${repo} was successfully updated with new description : ${desc}`,
-            repo_owner,
+            `Metadata of repository with name : ${repo} was successfully updated.`,
             "success",
             repo_owner,
             targetRepo
@@ -107,50 +103,9 @@ export async function updateRepoDescription(repo: string, desc: string) {
         let errorMsg = extractErrorMessage(err) || "An error occurred while updating the repository description.";
 
         await logInteraction(
-            "update_repo_description",
+            "update_repo_metadata",
             logInput,
             errorMsg,
-            repo_owner,
-            "error",
-            repo_owner,
-            targetRepo
-        );
-        throw err;
-    }
-}
-
-// Function to rename a Repo 
-export async function renameRepo(repo: string, newName: string) {
-    let targetRepo: null | bigint = null;
-    let logInput = `User want to rename a repo from : ${repo} to : ${newName}.`;
-    try {
-        const check = await repoExists(repo_owner, repo);
-        if (!check) {
-            throw new Error("Repository requested to update doesn't exist.");
-        }
-        targetRepo = BigInt(check.id);
-        await github.rest.repos.update({
-            owner: repo_owner,
-            repo,
-            name: newName
-        });
-        await logInteraction(
-            "rename_repo",
-            logInput,
-            `Repository with name : ${repo} was successfully renamed to : ${newName}`,
-            repo_owner,
-            "success",
-            repo_owner,
-            targetRepo
-        );
-    } catch (err) {
-        let errorMsg = extractErrorMessage(err) || "An error occurred while updating the repository.";
-
-        await logInteraction(
-            "rename_repo",
-            logInput,
-            errorMsg,
-            repo_owner,
             "error",
             repo_owner,
             targetRepo
@@ -179,7 +134,6 @@ export async function changeRepoVisibility(repo: string, visibility: visibility)
             "change_repo_visibility",
             logInput,
             `Repository visibility of : ${repo} was successfully changed to : ${visibility}`,
-            repo_owner,
             "success",
             repo_owner,
             targetRepo
@@ -191,7 +145,6 @@ export async function changeRepoVisibility(repo: string, visibility: visibility)
             "change_repo_visibility",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             repo_owner,
             targetRepo
@@ -215,7 +168,6 @@ export async function listAllRepos() {
             "list_all_repos",
             logInput,
             `Found ${repoNames.length} repositories.`,
-            repo_owner,
             "success",
             repo_owner,
             null
@@ -228,7 +180,6 @@ export async function listAllRepos() {
             "list_all_repos",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             repo_owner,
             null
@@ -238,7 +189,7 @@ export async function listAllRepos() {
 }
 
 // Function Get the details of a specific repo
-export async function getRepoDetails(owner : string, repo: string) {
+export async function getRepoDetails(owner : string = repo_owner, repo: string) {
     let targetRepo: null | bigint = null;
     let logInput = `User want to get details of repo : ${owner}/${repo}.`;
     try {
@@ -251,7 +202,6 @@ export async function getRepoDetails(owner : string, repo: string) {
             "get_repo_details",
             logInput,
             `Details of repository : ${owner}/${repo} fetched successfully.`,
-            repo_owner,
             "success",
             owner,
             targetRepo
@@ -264,7 +214,6 @@ export async function getRepoDetails(owner : string, repo: string) {
             "get_repo_details",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             owner,
             targetRepo
@@ -274,7 +223,7 @@ export async function getRepoDetails(owner : string, repo: string) {
 }
 
 // Function to fork a Repo
-export async function forkRepo(owner: string, repo: string, my_fork_name: string) {
+export async function forkRepo(owner: string = repo_owner, repo: string, my_fork_name: string) {
     let targetRepo: null | bigint = null;
     let logInput = `User want to fork ${owner}/${repo} as ${my_fork_name}.`;
     try {
@@ -289,7 +238,6 @@ export async function forkRepo(owner: string, repo: string, my_fork_name: string
             "fork_repo",
             logInput,
             `Successfully forked ${owner}/${repo}.`,
-            repo_owner,
             "success",
             owner,
             targetRepo
@@ -301,7 +249,6 @@ export async function forkRepo(owner: string, repo: string, my_fork_name: string
             "fork_repo",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             owner,
             targetRepo
@@ -311,7 +258,7 @@ export async function forkRepo(owner: string, repo: string, my_fork_name: string
 }
 
 // Function to star a Repo
-export async function starRepo(owner: string, repo: string) {
+export async function starRepo(owner: string = repo_owner, repo: string) {
     let targetRepo: null | bigint = null;
     let logInput = `User want to star ${owner}/${repo}.`;
     try {
@@ -330,7 +277,6 @@ export async function starRepo(owner: string, repo: string) {
             "star_repo",
             logInput,
             `Successfully starred ${owner}/${repo}.`,
-            repo_owner,
             "success",
             owner,
             targetRepo
@@ -342,7 +288,6 @@ export async function starRepo(owner: string, repo: string) {
             "star_repo",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             owner,
             targetRepo
@@ -352,7 +297,7 @@ export async function starRepo(owner: string, repo: string) {
 }
 
 // Function to unstar a Repo
-export async function unStarRepo(owner: string, repo: string) {
+export async function unStarRepo(owner: string = repo_owner, repo: string) {
     let targetRepo: null | bigint = null;
     let logInput = `User want to unstar ${owner}/${repo}.`;
     try {
@@ -370,7 +315,6 @@ export async function unStarRepo(owner: string, repo: string) {
             "unstar_repo",
             logInput,
             `Successfully unstarred ${owner}/${repo}.`,
-            repo_owner,
             "success",
             owner,
             targetRepo
@@ -382,7 +326,6 @@ export async function unStarRepo(owner: string, repo: string) {
             "unstar_repo",
             logInput,
             errorMsg,
-            repo_owner,
             "error",
             owner,
             targetRepo

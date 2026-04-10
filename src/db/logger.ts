@@ -4,7 +4,6 @@ export async function logInteraction(
   toolName: string,
   input: string,
   output: string,
-  executorUserIdentifier: string,
   status: "success" | "error",
   targetOwner?: string,
   targetRepo?: number | bigint | null
@@ -12,7 +11,6 @@ export async function logInteraction(
   await prisma.toolInteraction.create({
     data: {
       toolName,
-      executorUserIdentifier,
       targetOwner,
       targetRepo,
       input,
