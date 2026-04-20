@@ -3,7 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import chalk from "chalk";
-import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema, FollowingSchema, ListNotificationsInputSchema, NotificationSchema, CreatePullRequestSchema, PullRequestSummarySchema, MergePullRequestSchema, ClosePullRequestSchema, ListPullRequestsSchema, GetPullRequestSchema, AddPullRequestCommentSchema, CreateBranchSchema, DeleteBranchSchema, ListBranchesSchema, GetBranchSchema, BranchSummarySchema } from "./utils/types.js";
+import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema, FollowingSchema, ListNotificationsInputSchema, NotificationSchema, CreatePullRequestSchema, PullRequestSummarySchema, MergePullRequestSchema, ClosePullRequestSchema, ListPullRequestsSchema, GetPullRequestSchema, AddPullRequestCommentSchema, CreateBranchSchema, DeleteBranchSchema, ListBranchesSchema, GetBranchSchema, BranchSummarySchema, GetLoggingDataInputSchema, ToolInteractionSchema } from "./utils/types.js";
 import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, starRepo, unStarRepo, updateRepoMetadata } from "./controllers/repo.js";
 import { createIssue, closeIssue, updateIssue, listAllIssues, getIssueDetails, addIssueComment } from "./controllers/Issue.js";
 import { extractErrorMessage } from "./utils/utility.js";
@@ -13,6 +13,7 @@ import { listNotifications, MarkNotificationRead } from "./controllers/notificat
 import { repo_owner } from "./lib/github.js";
 import { addPullRequestComment, closePullRequest, createPullRequest, getPullRequest, listPullRequests, mergePullRequest } from "./controllers/pullRequest.js";
 import { createBranch, deleteBranch, listBranches, getBranch } from "./controllers/branch.js";
+import { getInteractionHistory } from "./db/db.js";
 
 // Polyfill for BigInt serialization in JSON.stringify (Required for GitHub IDs)
 (BigInt.prototype as any).toJSON = function () {
@@ -936,6 +937,31 @@ server.registerTool(
     }
 );
 
+//--- Tool to get Interaction data ---//
+server.registerTool(
+    "get_logging_data",
+    {
+        title: "Get Logging Data",
+        description: "This tool allows you to get logs of your interaction with the MCP server.",
+        inputSchema: GetLoggingDataInputSchema.shape,
+        outputSchema: z.object({
+            logs: z.array(ToolInteractionSchema)
+        }).shape
+    }, async (args) => {
+        try {
+            const logs = await getInteractionHistory(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(logs) }],
+                structuredContent: { logs }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occurred." }],
+                isError: true
+            }
+        }
+    }
+);
 
 (async () => {
     const transport = new StdioServerTransport();

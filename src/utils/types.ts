@@ -324,3 +324,20 @@ export const BranchSummarySchema = z.object({
     }),
     protected: z.boolean(),
 });
+
+export const GetLoggingDataInputSchema = z.object({
+    toolName: z.string().describe("The name of the tool for which you want to fetch logs."),
+    limit: z.number().int().positive().default(10).describe("The number of logs to fetch (default: 10)."),
+    lastseenid: z.number().int().nonnegative().optional().describe("The ID of the last log seen (for pagination).")
+});
+
+export const ToolInteractionSchema = z.object({
+    id: z.number(),
+    toolName: z.string(),
+    targetOwner: z.string().nullable(),
+    targetRepo: z.string().nullable(), // BigInt becomes string in JSON
+    input: z.string(),
+    output: z.string(),
+    status: z.enum(["success", "error"]),
+    executedAt: z.string().datetime(),
+});

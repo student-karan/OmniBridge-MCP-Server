@@ -1,4 +1,4 @@
-import { logInteraction } from "../db/logger.js";
+import { logInteraction } from "../db/db.js";
 import { github } from "../lib/github.js";
 import repoExists, { extractErrorMessage } from "../utils/utility.js";
 import { createIssueInput, updateIssueInput, listIssuesInput } from "../utils/types.js";

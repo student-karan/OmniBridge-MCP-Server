@@ -1,4 +1,4 @@
-import { logInteraction } from "../db/logger.js";
+import { logInteraction } from "../db/db.js";
 import { github, repo_owner } from "../lib/github.js";
 import { getRepoCloneCountInput, getRepoViewsInput, TrafficandStatsType } from "../utils/types.js";
 import repoExists, { extractErrorMessage, simplifiedContributerStatsData, sleep } from "../utils/utility.js";
