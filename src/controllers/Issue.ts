@@ -17,7 +17,7 @@ export async function createIssue(args: createIssueInput) {
         await logInteraction(
             "create_issue",
             logInput,
-            `Issue "${data.id}" created in ${args.owner}/${args.repo}`,
+            `Issue #${data.number} created in ${args.owner}/${args.repo}`,
             "success",
             args.owner,
             targetRepo
@@ -150,7 +150,7 @@ export async function listAllIssues(args: listIssuesInput) {
             }))
 
         await logInteraction(
-            "list_issues",
+            "list_all_issues",
             logInput,
             `Issues listed from ${args.owner}/${args.repo}.`,
             "success",
@@ -163,7 +163,7 @@ export async function listAllIssues(args: listIssuesInput) {
         let errorMsg = extractErrorMessage(err) || "An error occurred while listing the issues.";
 
         await logInteraction(
-            "list_issues",
+            "list_all_issues",
             logInput,
             errorMsg,
             "error",

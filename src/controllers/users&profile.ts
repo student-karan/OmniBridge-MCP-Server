@@ -42,7 +42,7 @@ export async function listFollowers({ per_page, page }: { per_page?: number, pag
             "success",
             repo_owner
         )
-        return data.map(user => user.name).filter(name => typeof name === "string");
+        return data.map(user => user.login);
     } catch (err) {
         let errorMsg = extractErrorMessage(err) || "An unknown error occured.";
         await logInteraction(
@@ -69,7 +69,7 @@ export async function listFollowing({ per_page, page }: { per_page?: number, pag
             "success",
             repo_owner
         )
-        return data.map(user => user.name).filter(name => typeof name === "string");
+        return data.map(user => user.login);
     } catch (err) {
         let errorMsg = extractErrorMessage(err) || "An unknown error occured.";
         await logInteraction(

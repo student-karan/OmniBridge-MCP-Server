@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { Endpoints } from "@octokit/types";
+import { repo_owner } from "../lib/github.js";
 
 export type visibility = "private" | "public";
 
@@ -212,3 +213,114 @@ export const ListNotificationsInputSchema = z.object({
 });
 
 export type ListNotificationsInputType = z.infer<typeof ListNotificationsInputSchema>;
+
+export const CreatePullRequestSchema = z.object({
+    owner: z.string().describe("The owner of the target repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    title: z.string().describe("The title of the pull request."),
+    head: z.string().describe("The name of the branch where your changes are implemented (e.g., 'my-feature-branch' or 'username:branch')."),
+    base: z.string().describe("The name of the branch you want the changes pulled into (e.g., 'main')."),
+    body: z.string().optional().describe("The contents of the pull request description."),
+});
+
+export type CreatePullRequestType = z.infer<typeof CreatePullRequestSchema>;
+
+export const ListPullRequestsSchema = z.object({
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    state: z.enum(["open", "closed", "all"]).optional().describe("Filter PRs by state (default: open)."),
+    head: z.string().optional().describe("Filter PRs by head user and branch name in the format 'user:branch-name'."),
+    base: z.string().optional().describe("Filter PRs by base branch name (e.g., 'main')."),
+    sort: z.enum(["created", "updated", "popularity", "long-running"]).optional().describe("What to sort results by (default: created)."),
+    direction: z.enum(["asc", "desc"]).optional().describe("The direction of the sort (default: desc)."),
+});
+
+export type ListPullRequestsType = z.infer<typeof ListPullRequestsSchema>;
+
+export const GetPullRequestSchema = z.object({
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    pull_number: z.number().int().describe("The number of the pull request to fetch."),
+});
+
+export type GetPullRequestType = z.infer<typeof GetPullRequestSchema>;
+
+export const MergePullRequestSchema = z.object({
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    pull_number: z.number().int().describe("The number of the pull request to merge."),
+    merge_method: z.enum(["merge", "squash", "rebase"]).optional().describe("The merge method to use (default:'merge')."),
+    commit_title: z.string().optional().describe("Title for the automatic commit message."),
+    commit_message: z.string().optional().describe("Extra detail to append to automatic commit message."),
+});
+
+export type MergePullRequestType = z.infer<typeof MergePullRequestSchema>;
+
+export const ClosePullRequestSchema = z.object({
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    pull_number: z.number().int().describe("The number of the pull request to close."),
+});
+
+export type ClosePullRequestType = z.infer<typeof ClosePullRequestSchema>;
+
+export const AddPullRequestCommentSchema = z.object({
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    pull_number: z.number().int().describe("The number of the pull request to comment on."),
+    body: z.string().describe("The text content of the comment."),
+});
+
+export type AddPullRequestCommentType = z.infer<typeof AddPullRequestCommentSchema>;
+
+export const PullRequestSummarySchema = z.object({
+    id: z.number(),
+    number: z.number(),
+    state: z.enum(["open", "closed"]),
+    title: z.string(),
+    user: z.object({ login: z.string() }),
+    html_url: z.string().url(),
+    created_at: z.string().datetime(),
+});
+
+export const CreateBranchSchema = z.object({
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    branch: z.string().describe("The name of the new branch."),
+    from_branch: z.string().describe("The name of the source branch to create from (e.g., 'main').").default("main"),
+});
+
+export type CreateBranchType = z.infer<typeof CreateBranchSchema>;
+
+export const DeleteBranchSchema = z.object({
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    branch: z.string().describe("The name of the branch to delete."),
+});
+
+export type DeleteBranchType = z.infer<typeof DeleteBranchSchema>;
+
+export const ListBranchesSchema = z.object({
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    protected: z.boolean().optional().describe("Filter branches by protection status."),
+});
+
+export type ListBranchesType = z.infer<typeof ListBranchesSchema>;
+
+export const GetBranchSchema = z.object({
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
+    repo: z.string().describe("The name of the repository."),
+    branch: z.string().describe("The name of the branch to fetch."),
+});
+
+export type GetBranchType = z.infer<typeof GetBranchSchema>;
+
+export const BranchSummarySchema = z.object({
+    name: z.string(),
+    commit: z.object({
+        sha: z.string(),
+        url: z.string().url(),
+    }),
+    protected: z.boolean(),
+});

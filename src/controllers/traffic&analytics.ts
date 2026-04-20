@@ -182,7 +182,9 @@ export async function getRepoContributorStats({ owner = repo_owner, repo }: Traf
             owner,
             targetRepo
         );
-        return data.map((contributer) => simplifiedContributerStatsData(contributer));
+        return data
+            .filter((contributor) => contributor.author && contributor.author.login)
+            .map((contributor) => simplifiedContributerStatsData(contributor));
     } catch (err) {
         let errorMsg = extractErrorMessage(err) || "An unknown error occurred.";
         await logInteraction(
@@ -236,7 +238,7 @@ export async function getRepoCommitActivity({ owner = repo_owner, repo }: Traffi
             return {
                 daily_commits: weekly_data.days,
                 total_commits: weekly_data.total,
-                week_start: weekly_data.week
+                week_start: new Date(weekly_data.week * 1000).toISOString().split('T')[0]
             }
         });
     } catch (err) {

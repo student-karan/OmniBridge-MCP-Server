@@ -87,8 +87,8 @@ export async function updateRepoMetadata(repo: string, newName? : string, desc?:
         targetRepo = BigInt(check.id);
         await github.rest.repos.update({
             owner: repo_owner,
-            name : newName,
             repo,
+            ...(newName && { name: newName }),
             description: desc
         });
         await logInteraction(

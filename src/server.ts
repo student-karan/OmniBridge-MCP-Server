@@ -3,14 +3,16 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import chalk from "chalk";
-import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema, FollowingSchema, ListNotificationsInputSchema, NotificationSchema } from "./utils/types.js";
-import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, starRepo, unStarRepo, updateRepoMetadata } from "./controllers/Repo.js";
+import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema, FollowingSchema, ListNotificationsInputSchema, NotificationSchema, CreatePullRequestSchema, PullRequestSummarySchema, MergePullRequestSchema, ClosePullRequestSchema, ListPullRequestsSchema, GetPullRequestSchema, AddPullRequestCommentSchema, CreateBranchSchema, DeleteBranchSchema, ListBranchesSchema, GetBranchSchema, BranchSummarySchema } from "./utils/types.js";
+import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, starRepo, unStarRepo, updateRepoMetadata } from "./controllers/repo.js";
 import { createIssue, closeIssue, updateIssue, listAllIssues, getIssueDetails, addIssueComment } from "./controllers/Issue.js";
 import { extractErrorMessage } from "./utils/utility.js";
 import { getRepoCloneCount, getTopReferrers, getRepoViews, getRepoTopPaths, getRepoContributorStats, getRepoCommitActivity } from "./controllers/traffic&analytics.js";
 import { getMyProfile, getUser, listFollowers, listFollowing } from "./controllers/users&profile.js";
 import { listNotifications, MarkNotificationRead } from "./controllers/notifications.js";
 import { repo_owner } from "./lib/github.js";
+import { addPullRequestComment, closePullRequest, createPullRequest, getPullRequest, listPullRequests, mergePullRequest } from "./controllers/pullRequest.js";
+import { createBranch, deleteBranch, listBranches, getBranch } from "./controllers/branch.js";
 
 // Polyfill for BigInt serialization in JSON.stringify (Required for GitHub IDs)
 (BigInt.prototype as any).toJSON = function () {
@@ -249,7 +251,6 @@ server.registerTool(
 );
 
 //--- Issues Management Tools  ---//
-
 server.registerTool(
     "create_issue",
     {
@@ -673,7 +674,7 @@ server.registerTool(
         title: "Mark Notifications Read",
         description: "This tool allows you to mark a specific notification as read.",
         inputSchema: z.object({
-            thread_id : z.number().int().nonnegative()
+            thread_id: z.number().int().nonnegative()
         }).shape,
     }, async (args) => {
         try {
@@ -681,6 +682,250 @@ server.registerTool(
             return {
                 content: [{ type: "text", text: `${repo_owner} Notification ${args.thread_id} is successfully marked as read.` }],
 
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+//--- Pull Request Tools ---//
+server.registerTool(
+    "create_pull_request",
+    {
+        title: "Create Pull Request",
+        description: "This tool allows you to to create a pull request.",
+        inputSchema: CreatePullRequestSchema.shape,
+        outputSchema: PullRequestSummarySchema.shape
+    }, async (args) => {
+        try {
+            const data = await createPullRequest(args);
+
+            return {
+                content: [{ type: "text", text: JSON.stringify(data) }],
+                structuredContent: data
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "merge_pull_request",
+    {
+        title: "Merge Pull Request",
+        description: "This tool allows you to to merge a pull request.",
+        inputSchema: MergePullRequestSchema.shape,
+        outputSchema: z.object({
+            sha: z.string(),
+            merged: z.boolean(),
+            message: z.string()
+        }).shape
+    }, async (args) => {
+        try {
+            const data = await mergePullRequest(args);
+
+            return {
+                content: [{ type: "text", text: JSON.stringify(data) }],
+                structuredContent: data
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "close_pull_request",
+    {
+        title: "Close Pull Request",
+        description: "This tool allows you to to close a pull request without merging.",
+        inputSchema: ClosePullRequestSchema.shape,
+        outputSchema: PullRequestSummarySchema.shape
+    }, async (args) => {
+        try {
+            const data = await closePullRequest(args);
+
+            return {
+                content: [{ type: "text", text: JSON.stringify(data) }],
+                structuredContent: data
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "list_pull_requests",
+    {
+        title: "List Pull Requests",
+        description: "This tool allows you to to list all the pull requests of the desired Repository.",
+        inputSchema: ListPullRequestsSchema.shape,
+        outputSchema: z.object({
+            data: z.array(PullRequestSummarySchema)
+        }).shape
+    }, async (args) => {
+        try {
+            const data = await listPullRequests(args);
+
+            return {
+                content: [{ type: "text", text: JSON.stringify(data) }],
+                structuredContent: { data }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "get_pull_request",
+    {
+        title: "Get Pull Request",
+        description: "This tool allows you to get details of a specific pull request.",
+        inputSchema: GetPullRequestSchema.shape,
+        outputSchema: PullRequestSummarySchema.shape
+    }, async (args) => {
+        try {
+            const data = await getPullRequest(args);
+
+            return {
+                content: [{ type: "text", text: JSON.stringify(data) }],
+                structuredContent:  data 
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "add_pr_comment",
+    {
+        title: "Add PR Comment",
+        description: "This tool allows you to add a comment to a specific Pull Request.",
+        inputSchema: AddPullRequestCommentSchema.shape,
+    }, async (args) => {
+        try {
+            await addPullRequestComment(args);
+
+            return {
+                content: [{ type: "text", text: `Successfully added a comment to PR #${args.pull_number} in ${args.repo}.` }],
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+//--- Branch Management Tools ---//
+server.registerTool(
+    "create_branch",
+    {
+        title: "Create Branch",
+        description: "This tool allows you to create a branch in a specific repo.",
+        inputSchema: CreateBranchSchema.shape,
+    }, async (args) => {
+        try {
+            await createBranch(args);
+
+            return {
+                content: [{ type: "text", text: `Branch '${args.branch}' from '${args.from_branch}' created successfully in ${args.repo}.` }],
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "delete_branch",
+    {
+        title: "Delete Branch",
+        description: "This tool allows you to delete a branch in a specific repo.",
+        inputSchema: DeleteBranchSchema.shape,
+    }, async (args) => {
+        try {
+            await deleteBranch(args);
+
+            return {
+                content: [{ type: "text", text: `Branch '${args.branch}' deleted successfully from ${args.repo}.` }],
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "list_branches",
+    {
+        title: "List Branches",
+        description: "This tool allows you to list branches in a specific repo.",
+        inputSchema: ListBranchesSchema.shape,
+        outputSchema: z.object({
+            branches: z.array(BranchSummarySchema)
+        }).shape
+    }, async (args) => {
+        try {
+            const branches = await listBranches(args);
+
+            return {
+                content: [{ type: "text", text: JSON.stringify(branches) }],
+                structuredContent: { branches }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occured." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "get_branch",
+    {
+        title: "Get Branch",
+        description: "This tool allows you to retrieve information about a specific branch in a repo.",
+        inputSchema: GetBranchSchema.shape,
+        outputSchema: BranchSummarySchema.shape
+    }, async (args) => {
+        try {
+            const branch = await getBranch(args);
+
+            return {
+                content: [{ type: "text", text: JSON.stringify(branch) }],
+                structuredContent:  branch 
             }
         } catch (err) {
             return {
