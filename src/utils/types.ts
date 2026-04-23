@@ -341,3 +341,14 @@ export const ToolInteractionSchema = z.object({
     status: z.enum(["success", "error"]),
     executedAt: z.string().datetime(),
 });
+
+// --- Discord Schemas ---
+export const SendDiscordMessageSchema = z.object({
+    text: z.string().min(1).max(2000).describe("The content of the message to send to Discord (max 2000 characters)."),
+});
+
+export const DiscordMessageResponseSchema = z.object({
+    id: z.string().describe("The unique ID of the sent Discord message."),
+    channelId: z.string().describe("The ID of the channel where the message was sent."),
+    content: z.string().describe("The content of the sent message."),
+});

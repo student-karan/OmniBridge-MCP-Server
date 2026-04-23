@@ -1,7 +1,7 @@
-import { logInteraction } from "../db/db.js";
-import { github, repo_owner } from "../lib/github.js";
-import { getRepoCloneCountInput, getRepoViewsInput, TrafficandStatsType } from "../utils/types.js";
-import repoExists, { extractErrorMessage, simplifiedContributerStatsData, sleep } from "../utils/utility.js";
+import { logInteraction } from "../../db/db.js";
+import { github, repo_owner } from "../../lib/github.js";
+import { getRepoCloneCountInput, getRepoViewsInput, TrafficandStatsType } from "../../utils/types.js";
+import repoExists, { extractErrorMessage, simplifiedContributerStatsData, sleep } from "../../utils/utility.js";
 
 // Function to get the view count of a repository 
 export async function getRepoViews({ owner = repo_owner, repo, per }: getRepoViewsInput) {

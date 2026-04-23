@@ -1,7 +1,7 @@
-import { logInteraction } from "../db/db.js";
-import { github, repo_owner } from "../lib/github.js";
-import { RepoDetailsSchema, RepositorySchema, visibility } from "../utils/types.js";
-import repoExists, { extractErrorMessage } from "../utils/utility.js";
+import { logInteraction } from "../../db/db.js";
+import { github, repo_owner } from "../../lib/github.js";
+import { RepoDetailsSchema, RepositorySchema, visibility } from "../../utils/types.js";
+import repoExists, { extractErrorMessage } from "../../utils/utility.js";
 
 // Function to create a new Repo
 export async function createRepo(repo: string, visibility: visibility, desc?: string) {

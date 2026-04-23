@@ -37,7 +37,14 @@ export async function getInteractionHistory(
         id: "asc"
       }
     })
-    return interactionData;
+    const logs = interactionData.map(log => ({
+      ...log,
+      targetRepo: log.targetRepo?.toString() ?? null,
+      executedAt: log.executedAt instanceof Date
+        ? log.executedAt.toISOString()
+        : String(log.executedAt),
+    }));
+    return logs;
   } catch (err) {
     console.error(`Failed to fetch interaction data for ${toolName}:`, err);
   }

@@ -9,24 +9,29 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-}
-
-enum InteractionStatus {
-  success
-  error
+  provider = "sqlite"
 }
 
 model ToolInteraction {
   id                     Int               @id @default(autoincrement())
-  toolName               String            @db.VarChar(100)
-  targetOwner            String?           @db.VarChar(100)
+  toolName               String
+  targetOwner            String?
   targetRepo             BigInt?
   input                  String
   output                 String
-  status                 InteractionStatus
+  status                 String            // "success" or "error"
   executedAt             DateTime          @default(now())
 
   @@index([toolName])
   @@map("tool_interactions")
+}
+
+model DiscordMessage {
+  id        Int      @id @default(autoincrement())
+  messageId String   @unique
+  channelId String
+  text      String
+  createdAt DateTime @default(now())
+
+  @@map("discord_messages")
 }

@@ -1,7 +1,7 @@
-import { logInteraction } from "../db/db.js";
-import { github, repo_owner } from "../lib/github.js";
-import { NotificationSchema, ListNotificationsInputType } from "../utils/types.js";
-import { extractErrorMessage } from "../utils/utility.js";
+import { logInteraction } from "../../db/db.js";
+import { github, repo_owner } from "../../lib/github.js";
+import { NotificationSchema, ListNotificationsInputType } from "../../utils/types.js";
+import { extractErrorMessage } from "../../utils/utility.js";
 
 // Function to get all the GitHub notifications of the current user.
 export async function listNotifications(args: ListNotificationsInputType) {

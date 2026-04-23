@@ -1,7 +1,7 @@
-import { logInteraction } from "../db/db.js";
-import { github, repo_owner } from "../lib/github.js";
-import {  CreatePullRequestType,  PullRequestSummarySchema,  ListPullRequestsType,  GetPullRequestType,  MergePullRequestType,   ClosePullRequestType,   AddPullRequestCommentType} from "../utils/types.js";
-import repoExists, { extractErrorMessage } from "../utils/utility.js";
+import { logInteraction } from "../../db/db.js";
+import { github, repo_owner } from "../../lib/github.js";
+import {  CreatePullRequestType,  PullRequestSummarySchema,  ListPullRequestsType,  GetPullRequestType,  MergePullRequestType,   ClosePullRequestType,   AddPullRequestCommentType} from "../../utils/types.js";
+import repoExists, { extractErrorMessage } from "../../utils/utility.js";
 
 // Function to create a pull request.
 export async function createPullRequest(args: CreatePullRequestType) {

@@ -1,7 +1,7 @@
-import { logInteraction } from "../db/db.js";
-import { github } from "../lib/github.js";
-import repoExists, { extractErrorMessage } from "../utils/utility.js";
-import { createIssueInput, updateIssueInput, listIssuesInput } from "../utils/types.js";
+import { logInteraction } from "../../db/db.js";
+import { github } from "../../lib/github.js";
+import repoExists, { extractErrorMessage } from "../../utils/utility.js";
+import { createIssueInput, updateIssueInput, listIssuesInput } from "../../utils/types.js";
 
 // Function to create an issue
 export async function createIssue(args: createIssueInput) {

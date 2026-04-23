@@ -3,17 +3,18 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import chalk from "chalk";
-import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema, FollowingSchema, ListNotificationsInputSchema, NotificationSchema, CreatePullRequestSchema, PullRequestSummarySchema, MergePullRequestSchema, ClosePullRequestSchema, ListPullRequestsSchema, GetPullRequestSchema, AddPullRequestCommentSchema, CreateBranchSchema, DeleteBranchSchema, ListBranchesSchema, GetBranchSchema, BranchSummarySchema, GetLoggingDataInputSchema, ToolInteractionSchema } from "./utils/types.js";
-import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, starRepo, unStarRepo, updateRepoMetadata } from "./controllers/repo.js";
-import { createIssue, closeIssue, updateIssue, listAllIssues, getIssueDetails, addIssueComment } from "./controllers/Issue.js";
+import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema, FollowingSchema, ListNotificationsInputSchema, NotificationSchema, CreatePullRequestSchema, PullRequestSummarySchema, MergePullRequestSchema, ClosePullRequestSchema, ListPullRequestsSchema, GetPullRequestSchema, AddPullRequestCommentSchema, CreateBranchSchema, DeleteBranchSchema, ListBranchesSchema, GetBranchSchema, BranchSummarySchema, GetLoggingDataInputSchema, ToolInteractionSchema, DiscordMessageResponseSchema } from "./utils/types.js";
+import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, starRepo, unStarRepo, updateRepoMetadata } from "./controllers/Github/repo.js";
+import { createIssue, closeIssue, updateIssue, listAllIssues, getIssueDetails, addIssueComment } from "./controllers/Github/Issue.js";
 import { extractErrorMessage } from "./utils/utility.js";
-import { getRepoCloneCount, getTopReferrers, getRepoViews, getRepoTopPaths, getRepoContributorStats, getRepoCommitActivity } from "./controllers/traffic&analytics.js";
-import { getMyProfile, getUser, listFollowers, listFollowing } from "./controllers/users&profile.js";
-import { listNotifications, MarkNotificationRead } from "./controllers/notifications.js";
+import { getRepoCloneCount, getTopReferrers, getRepoViews, getRepoTopPaths, getRepoContributorStats, getRepoCommitActivity } from "./controllers/Github/traffic&analytics.js";
+import { getMyProfile, getUser, listFollowers, listFollowing } from "./controllers/Github/users&profile.js";
+import { listNotifications, MarkNotificationRead } from "./controllers/Github/notifications.js";
 import { repo_owner } from "./lib/github.js";
-import { addPullRequestComment, closePullRequest, createPullRequest, getPullRequest, listPullRequests, mergePullRequest } from "./controllers/pullRequest.js";
-import { createBranch, deleteBranch, listBranches, getBranch } from "./controllers/branch.js";
+import { addPullRequestComment, closePullRequest, createPullRequest, getPullRequest, listPullRequests, mergePullRequest } from "./controllers/Github/pullRequest.js";
+import { createBranch, deleteBranch, listBranches, getBranch } from "./controllers/Github/branch.js";
 import { getInteractionHistory } from "./db/db.js";
+import { listRecentDiscordMessages, sendDiscordMessage } from "./controllers/Discord/discord.js";
 
 // Polyfill for BigInt serialization in JSON.stringify (Required for GitHub IDs)
 (BigInt.prototype as any).toJSON = function () {
@@ -953,6 +954,56 @@ server.registerTool(
             return {
                 content: [{ type: "text", text: JSON.stringify(logs) }],
                 structuredContent: { logs }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occurred." }],
+                isError: true
+            }
+        }
+    }
+);
+
+//--- Discord Tools ---//
+server.registerTool(
+       "send_discord_message",
+       {
+        title : "Send Discord Message",
+        description : "This tool allows you to send a message to a Discord channel and saves the message data in the internal database.",
+        inputSchema : z.object({
+            text: z.string().describe("The content of the message you want to send.")
+        }).shape,
+        outputSchema : DiscordMessageResponseSchema.shape
+       }, async ({text})=>{
+        try{
+            const response = await sendDiscordMessage(text);
+            return {
+                content: [{ type: "text", text: JSON.stringify(response) }],
+                structuredContent: response
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occurred." }],
+                isError: true
+            }
+        }
+    }
+);
+
+server.registerTool(
+    "list_recent_discord_messages",
+    {
+        title: "List Recent Discord Messages",
+        description: "Fetch a list of recently sent Discord messages from the internal database.",
+        inputSchema: z.object({
+            limit: z.number().int().positive().default(10).describe("The number of recent messages to fetch.")
+        }).shape
+    }, async ({ limit }) => {
+        try {
+            const messages = await listRecentDiscordMessages(limit);
+            return {
+                content: [{ type: "text", text: JSON.stringify(messages) }],
+                structuredContent: { messages }
             }
         } catch (err) {
             return {

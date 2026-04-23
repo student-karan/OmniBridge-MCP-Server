@@ -1,7 +1,7 @@
-import { logInteraction } from "../db/db.js";
-import { github, repo_owner } from "../lib/github.js";
-import { CreateBranchType,   DeleteBranchType,   ListBranchesType,   GetBranchType,   BranchSummarySchema } from "../utils/types.js";
-import repoExists, { extractErrorMessage } from "../utils/utility.js";
+import { logInteraction } from "../../db/db.js";
+import { github, repo_owner } from "../../lib/github.js";
+import { CreateBranchType,   DeleteBranchType,   ListBranchesType,   GetBranchType,   BranchSummarySchema } from "../../utils/types.js";
+import repoExists, { extractErrorMessage } from "../../utils/utility.js";
 
 // Function to create a new branch
 export async function createBranch(args: CreateBranchType) {
