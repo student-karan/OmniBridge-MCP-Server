@@ -16,6 +16,7 @@ import { addPullRequestComment, closePullRequest, createPullRequest, getPullRequ
 import { createBranch, deleteBranch, listBranches, getBranch } from "./controllers/Github/branch.js";
 import { getInteractionHistory } from "./db/db.js";
 import { listRecentDiscordMessages, sendDiscordMessage } from "./controllers/Discord/discord.js";
+import { ensureDatabaseReady } from "./db/init.js";
 
 // Polyfill for BigInt serialization in JSON.stringify (Required for GitHub IDs)
 (BigInt.prototype as any).toJSON = function () {
@@ -1016,6 +1017,7 @@ server.registerTool(
 );
 
 (async () => {
+    await ensureDatabaseReady();
     const transport = new StdioServerTransport();
     await server.connect(transport);
 })()

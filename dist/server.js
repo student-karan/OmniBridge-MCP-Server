@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
@@ -15,6 +16,7 @@ import { addPullRequestComment, closePullRequest, createPullRequest, getPullRequ
 import { createBranch, deleteBranch, listBranches, getBranch } from "./controllers/Github/branch.js";
 import { getInteractionHistory } from "./db/db.js";
 import { listRecentDiscordMessages, sendDiscordMessage } from "./controllers/Discord/discord.js";
+import { ensureDatabaseReady } from "./db/init.js";
 // Polyfill for BigInt serialization in JSON.stringify (Required for GitHub IDs)
 BigInt.prototype.toJSON = function () {
     return this.toString();
@@ -874,6 +876,7 @@ server.registerTool("list_recent_discord_messages", {
     }
 });
 (async () => {
+    await ensureDatabaseReady();
     const transport = new StdioServerTransport();
     await server.connect(transport);
 })()
