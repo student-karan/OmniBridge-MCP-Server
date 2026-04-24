@@ -18,11 +18,13 @@
   "files": [
     "dist",
     "prisma",
-    "prisma.config.ts"
+    "prisma.config.ts",
+    "README.md",
+    "package.json"
   ],
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Jasmeet Singh",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.27.1",
