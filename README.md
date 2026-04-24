@@ -42,9 +42,9 @@ CREATE DATABASE omnibridge_db;
 
 ---
 
-## ⚙️ Claude Desktop Configuration
+## ⚙️ MCP Client Configuration
 
-Add this to your `claude_desktop_config.json`. This configuration ensures the server has all necessary credentials for GitHub API, Discord integration, and MySQL logging.
+Add the following to your MCP client's configuration file (e.g., `claude_desktop_config.json` for Claude, `mcpSettings.json` for Roo Code/Cline, or your IDE's MCP settings). This standard configuration works across all MCP-compatible platforms:
 
 ```json
 {
@@ -68,6 +68,8 @@ Add this to your `claude_desktop_config.json`. This configuration ensures the se
   }
 }
 ```
+
+*Note: Most modern AI environments that support the Model Context Protocol (MCP) utilize this standardized configuration structure.*
 
 ---
 
