@@ -53,7 +53,7 @@ Add the following to your MCP client's configuration file (e.g., `claude_desktop
       "command": "npx",
       "args": ["-y", "omnibridge-mcp"],
       "env": {
-        "GITHUB_PERSONAL_ACCESS_TOKEN": "your_github_pat",
+        "GITHUB_PAT": "your_github_pat",
         "GITHUB_REPO_OWNER": "your_github_username",
         "DATABASE_HOST": "localhost",
         "DATABASE_PORT": "3306",

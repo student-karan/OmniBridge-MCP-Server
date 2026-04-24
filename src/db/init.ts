@@ -9,9 +9,7 @@ export async function ensureDatabaseReady() {
   try {
     // 1. Quick check: Can we query the interaction table?
     await prisma.toolInteraction.findFirst();
-    // If it succeeds, the database is already initialized.
   } catch (err) {
-    // 2. If the check fails, we assume tables are missing and attempt migration.
     const {
       DATABASE_HOST,
       DATABASE_USER,
@@ -35,9 +33,10 @@ export async function ensureDatabaseReady() {
 
     console.error("OmniBridge: Initializing database tables...");
     try {
+      // Silence stdout (index 1) to prevent JSON protocol crashes in MCP clients
       execSync(`npx prisma migrate deploy`, {
         cwd: rootDir,
-        stdio: "inherit",
+        stdio: ["ignore", "ignore", "inherit"],
         env: {
           ...process.env,
           DATABASE_URL: url,
