@@ -131,5 +131,5 @@ Add the following to your MCP client's configuration file (e.g., `claude_desktop
 
 ## 📄 License & Credits
 Developed for **GTBIT (GGSIPU)** as a major college project.
-**Project Lead:** [Your Name]
+**Project Lead:** Jasmeet Singh
 **Architecture:** Node.js, Prisma V7, MariaDB/MySQL.
