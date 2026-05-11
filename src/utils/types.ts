@@ -4,6 +4,8 @@ import { repo_owner } from "../lib/github.js";
 
 export type visibility = "private" | "public";
 
+// Repository Management Tools Schemas
+
 export const RepositorySchema = z.object({
     id: z.number().int().nonnegative().describe("The unique GitHub ID of the repository."),
     name: z.string().describe("The name of the repository."),
@@ -32,8 +34,10 @@ export const RepoDetailsSchema = z.object({
     }).describe("Details about the owner of the repository.")
 });
 
+// Issue Management Tools Schemas
+
 export const createIssueSchema = z.object({
-    owner: z.string().describe("The owner of the repository (username or organization)."),
+    owner: z.string().describe("The owner of the repository (username or organization).").default(repo_owner),
     repo: z.string().describe("The name of the repository."),
     title: z.string().describe("The title of the issue."),
     body: z.string().optional().describe("The detailed description or body of the issue."),
@@ -44,7 +48,7 @@ export const createIssueSchema = z.object({
 export type createIssueInput = z.infer<typeof createIssueSchema>;
 
 export const updateIssueSchema = z.object({
-    owner: z.string().describe("The owner of the repository."),
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
     repo: z.string().describe("The name of the repository."),
     issue_number: z.number().int().nonnegative().describe("The number of the issue to update."),
     title: z.string().optional().describe("The new title for the issue."),
@@ -57,7 +61,7 @@ export const updateIssueSchema = z.object({
 export type updateIssueInput = z.infer<typeof updateIssueSchema>;
 
 export const listIssuesSchema = z.object({
-    owner: z.string().describe("The owner of the repository."),
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
     repo: z.string().describe("The name of the repository."),
     state: z.enum(["open", "closed", "all"]).optional().describe("Filter issues by state (default: open)."),
     labels: z.array(z.string()).optional().describe("Filter issues by a list of comma-separated labels."),
@@ -70,7 +74,7 @@ export const listIssuesSchema = z.object({
 export type listIssuesInput = z.infer<typeof listIssuesSchema>;
 
 export const getIssueDetailsInputSchema = z.object({
-    owner: z.string().describe("The owner of the repository."),
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
     repo: z.string().describe("The name of the repository."),
     issue_number: z.number().int().nonnegative().describe("The number of the specific issue to fetch.")
 });
@@ -89,7 +93,7 @@ export const getIssueDetailsOutputSchema = z.object({
 })
 
 export const addIssueCommentSchema = z.object({
-    owner: z.string().describe("The owner of the repository."),
+    owner: z.string().describe("The owner of the repository.").default(repo_owner),
     repo: z.string().describe("The name of the repository."),
     issue_number: z.number().int().nonnegative().describe("The number of the issue to comment on."),
     comment: z.string().describe("The text content of the comment.")
@@ -97,8 +101,10 @@ export const addIssueCommentSchema = z.object({
 
 export type per = "week" | "day" | undefined;
 
+// Traffics and Analytics Management Tools Schemas
+
 export const RepoViewsInputSchema = z.object({
-    owner: z.string().optional().describe("The owner of the repository (defaults to the configured GITHUB_REPO_OWNER)."),
+    owner: z.string().optional().describe("The owner of the repository (defaults to the configured GITHUB_REPO_OWNER).").default(repo_owner),
     repo: z.string().describe("The name of the repository."),
     per: z.enum(["day", "week"]).describe("Specifies whether repository views should be grouped by 'day' or 'week'.").optional()
 })
@@ -106,7 +112,7 @@ export const RepoViewsInputSchema = z.object({
 export type getRepoViewsInput = z.infer<typeof RepoViewsInputSchema>;
 
 export const RepoCloneCountInputSchema = z.object({
-    owner: z.string().optional().describe("The owner of the repository (defaults to the configured GITHUB_REPO_OWNER)."),
+    owner: z.string().optional().describe("The owner of the repository.").default(repo_owner),
     repo: z.string().describe("The name of the repository."),
     per: z.enum(["day", "week"]).describe("Specifies whether repository views should be grouped by 'day' or 'week'.").optional()
 })
@@ -132,7 +138,7 @@ export const RepoCloneCountOutputSchema = z.object({
 })
 
 export const TrafficandStatsSchema = z.object({
-    owner: z.string().optional().describe("The owner of the repository (defaults to configured GITHUB_REPO_OWNER)."),
+    owner: z.string().optional().describe("The owner of the repository.").default(repo_owner),
     repo: z.string().describe("The name of the repository."),
 });
 
@@ -186,6 +192,8 @@ export const FollowingSchema = z.object({
     page: z.number().int().nonnegative().describe("Page number of the results to fetch.").optional()
 })
 
+// Notifications Management Tools Schemas
+
 export const NotificationSchema = z.object({
     id: z.string().describe("The unique ID of the notification thread."),
     unread: z.boolean(),
@@ -213,6 +221,8 @@ export const ListNotificationsInputSchema = z.object({
 });
 
 export type ListNotificationsInputType = z.infer<typeof ListNotificationsInputSchema>;
+
+// Pull Request Management Tools Schemas
 
 export const CreatePullRequestSchema = z.object({
     owner: z.string().describe("The owner of the target repository.").default(repo_owner),
@@ -283,6 +293,8 @@ export const PullRequestSummarySchema = z.object({
     created_at: z.string().datetime(),
 });
 
+// Branch Management Tools Schemas
+
 export const CreateBranchSchema = z.object({
     owner: z.string().describe("The owner of the repository.").default(repo_owner),
     repo: z.string().describe("The name of the repository."),
@@ -342,7 +354,64 @@ export const ToolInteractionSchema = z.object({
     executedAt: z.string().datetime(),
 });
 
-// --- Discord Schemas ---
+// Collaborators Schemas
+export const addCollaboratorsInputSchema = z.object({
+    owner : z.string().describe("The owner of the repository.").default(repo_owner),
+    repo : z.string().describe("The name of the repository."),
+    username: z.string().describe("The GitHub username of the person you are adding."),
+    permission : z.enum(["pull","push","maintain","triage","admin"]).default("push")
+});
+
+export type addCollaboratorsInputtype = z.infer<typeof addCollaboratorsInputSchema>;
+
+export const removeCollaboratorsInputSchema = z.object({
+    owner : z.string().describe("The owner of the repository.").default(repo_owner),
+    repo : z.string().describe("The name of the repository."),
+    username: z.string().describe("The GitHub username of the person to remove."),
+});
+
+export type removeCollaboratorsInputtype = z.infer<typeof removeCollaboratorsInputSchema>;
+
+export const listCollaboratorsInputSchema = z.object({
+    owner : z.string().describe("The owner of the repository.").default(repo_owner),
+    repo : z.string().describe("The name of the repository."),
+    affiliation: z.enum(["outside","direct","all"]).default("all"),
+});
+
+export type listCollaboratorsInputtype = z.infer<typeof listCollaboratorsInputSchema>;
+
+export const CollaboratorPermissionsSchema = z.object({
+    pull: z.boolean(),
+    triage: z.boolean().optional(),
+    push: z.boolean(),
+    maintain: z.boolean().optional(),
+    admin: z.boolean(),
+});
+
+export const CollaboratorSchema = z.object({
+    username: z.string().describe("The GitHub username of the collaborator."),
+    role: z.string().nullable().optional().describe("The role name of the collaborator (e.g., admin, write, read)."),
+    permissions: CollaboratorPermissionsSchema.describe("Detailed permissions for the collaborator."),
+});
+
+export const listCollaboratorsOutputSchema = z.object({
+    collaborators: z.array(CollaboratorSchema)
+});
+
+// Discovery Schemas
+export const listAvailableToolsOutputSchema = z.object({
+    server: z.string().describe("The name of the MCP server."),
+    total_tools: z.number().describe("The total count of tools available."),
+    categories: z.array(z.object({
+        name: z.string().describe("Category name."),
+        tools: z.array(z.object({
+            name: z.string().describe("Tool name."),
+            description: z.string().describe("What the tool does.")
+        })).describe("Tools in this category.")
+    })).describe("All tools grouped by category.")
+});
+
+// Discord Schemas
 export const SendDiscordMessageSchema = z.object({
     text: z.string().min(1).max(2000).describe("The content of the message to send to Discord (max 2000 characters)."),
 });
@@ -352,3 +421,11 @@ export const DiscordMessageResponseSchema = z.object({
     channelId: z.string().describe("The ID of the channel where the message was sent."),
     content: z.string().describe("The content of the sent message."),
 });
+
+export const listingDiscordMessagesOutputSchema = z.object({
+    text : z.string(),
+    id : z.number(),
+    messageId : z.string(),
+    channelId : z.string(),
+    createdAt : z.string().datetime(),
+})

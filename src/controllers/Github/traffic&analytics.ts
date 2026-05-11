@@ -4,7 +4,7 @@ import { getRepoCloneCountInput, getRepoViewsInput, TrafficandStatsType } from "
 import repoExists, { extractErrorMessage, simplifiedContributerStatsData, sleep } from "../../utils/utility.js";
 
 // Function to get the view count of a repository 
-export async function getRepoViews({ owner = repo_owner, repo, per }: getRepoViewsInput) {
+export async function getRepoViews({ owner, repo, per }: getRepoViewsInput) {
     const logInput = `User wants the view count of the repository : ${owner}/${repo}`;
     let targetRepo: bigint | null = null;
     try {
@@ -40,7 +40,7 @@ export async function getRepoViews({ owner = repo_owner, repo, per }: getRepoVie
 }
 
 // Function to get the clone count of a repository 
-export async function getRepoCloneCount({ owner = repo_owner, repo, per }: getRepoCloneCountInput) {
+export async function getRepoCloneCount({ owner, repo, per }: getRepoCloneCountInput) {
     const logInput = `User wants the clone count of the repository : ${owner}/${repo}`;
     let targetRepo: bigint | null = null;
     try {
@@ -76,7 +76,7 @@ export async function getRepoCloneCount({ owner = repo_owner, repo, per }: getRe
 }
 
 // Function to get the top Referrers of a repository 
-export async function getTopReferrers({ owner = repo_owner, repo }: TrafficandStatsType) {
+export async function getTopReferrers({ owner, repo }: TrafficandStatsType) {
     const logInput = `User wants the top referrers of the repository : ${owner}/${repo}`;
     let targetRepo: bigint | null = null;
     try {
@@ -112,7 +112,7 @@ export async function getTopReferrers({ owner = repo_owner, repo }: TrafficandSt
 }
 
 // Function to get the top paths of a repository 
-export async function getRepoTopPaths({ owner = repo_owner, repo }: TrafficandStatsType) {
+export async function getRepoTopPaths({ owner, repo }: TrafficandStatsType) {
     const logInput = `User wants the top paths of the repository : ${owner}/${repo}`;
     let targetRepo: bigint | null = null;
     try {
@@ -147,7 +147,7 @@ export async function getRepoTopPaths({ owner = repo_owner, repo }: TrafficandSt
 }
 
 // Function to get the contributor statistics of a repository
-export async function getRepoContributorStats({ owner = repo_owner, repo }: TrafficandStatsType) {
+export async function getRepoContributorStats({ owner, repo }: TrafficandStatsType) {
     const logInput = `User wants the contributor stats of the repository : ${owner}/${repo}`;
     let targetRepo: bigint | null = null;
     try {
@@ -200,7 +200,7 @@ export async function getRepoContributorStats({ owner = repo_owner, repo }: Traf
 }
 
 // Function to get the weekly commit activity of a repository
-export async function getRepoCommitActivity({ owner = repo_owner, repo }: TrafficandStatsType) {
+export async function getRepoCommitActivity({ owner, repo }: TrafficandStatsType) {
     const logInput = `User wants the weekly commit activity of the repository : ${owner}/${repo}`;
     let targetRepo: bigint | null = null;
     try {

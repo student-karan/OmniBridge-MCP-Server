@@ -19,7 +19,7 @@ export async function sendDiscordMessage(text: string) {
 
         // 2. Fetch the channel
         const channel = await discordClient.channels.fetch(channelId);
-        
+
         if (!channel || !(channel instanceof TextChannel)) {
             throw new Error("Could not find the specified text channel.");
         }
@@ -53,8 +53,13 @@ export async function sendDiscordMessage(text: string) {
  * @param limit Number of messages to fetch.
  */
 export async function listRecentDiscordMessages(limit: number = 10) {
-    return await prisma.discordMessage.findMany({
+    const messages = await prisma.discordMessage.findMany({
         take: limit,
         orderBy: { createdAt: 'desc' }
     });
+
+    return messages.map((message) => {
+        const date = message.createdAt instanceof Date ? message.createdAt.toISOString() : String(message.createdAt);
+        return {...message, createdAt : date};
+    })
 }

@@ -4,10 +4,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import chalk from "chalk";
-import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema, FollowingSchema, ListNotificationsInputSchema, NotificationSchema, CreatePullRequestSchema, PullRequestSummarySchema, MergePullRequestSchema, ClosePullRequestSchema, ListPullRequestsSchema, GetPullRequestSchema, AddPullRequestCommentSchema, CreateBranchSchema, DeleteBranchSchema, ListBranchesSchema, GetBranchSchema, BranchSummarySchema, GetLoggingDataInputSchema, ToolInteractionSchema, DiscordMessageResponseSchema } from "./utils/types.js";
+import { RepoCreation, RepoDetailsSchema, RepositorySchema, createIssueSchema, updateIssueSchema, listIssuesSchema, addIssueCommentSchema, getIssueDetailsOutputSchema, getIssueDetailsInputSchema, RepoViewsInputSchema, RepoViewsOutputSchema, RepoCloneCountInputSchema, RepoCloneCountOutputSchema, TrafficandStatsSchema, ContributorStatsOutputSchema, CommitActivityOutputSchema, UserProfileSchema, FollowingSchema, ListNotificationsInputSchema, NotificationSchema, CreatePullRequestSchema, PullRequestSummarySchema, MergePullRequestSchema, ClosePullRequestSchema, ListPullRequestsSchema, GetPullRequestSchema, AddPullRequestCommentSchema, CreateBranchSchema, DeleteBranchSchema, ListBranchesSchema, GetBranchSchema, BranchSummarySchema, GetLoggingDataInputSchema, ToolInteractionSchema, DiscordMessageResponseSchema, addCollaboratorsInputSchema, removeCollaboratorsInputSchema, listCollaboratorsInputSchema, listCollaboratorsOutputSchema, listingDiscordMessagesOutputSchema, listAvailableToolsOutputSchema } from "./utils/types.js";
 import { changeRepoVisibility, createRepo, deleteRepo, forkRepo, getRepoDetails, listAllRepos, starRepo, unStarRepo, updateRepoMetadata } from "./controllers/Github/repo.js";
 import { createIssue, closeIssue, updateIssue, listAllIssues, getIssueDetails, addIssueComment } from "./controllers/Github/Issue.js";
-import { extractErrorMessage } from "./utils/utility.js";
+import { extractErrorMessage, toolList } from "./utils/utility.js";
 import { getRepoCloneCount, getTopReferrers, getRepoViews, getRepoTopPaths, getRepoContributorStats, getRepoCommitActivity } from "./controllers/Github/traffic&analytics.js";
 import { getMyProfile, getUser, listFollowers, listFollowing } from "./controllers/Github/users&profile.js";
 import { listNotifications, MarkNotificationRead } from "./controllers/Github/notifications.js";
@@ -17,6 +17,7 @@ import { createBranch, deleteBranch, listBranches, getBranch } from "./controlle
 import { getInteractionHistory } from "./db/db.js";
 import { listRecentDiscordMessages, sendDiscordMessage } from "./controllers/Discord/discord.js";
 import { ensureDatabaseReady } from "./db/init.js";
+import { addCollaborators, removeCollaborators, listCollaborators } from "./controllers/Github/collaborators.js";
 
 // Polyfill for BigInt serialization in JSON.stringify (Required for GitHub IDs)
 (BigInt.prototype as any).toJSON = function () {
@@ -158,7 +159,7 @@ server.registerTool(
         title: "Get Repository Details",
         description: "Fetch the details of the repository user requested.",
         inputSchema: z.object({
-            owner: z.string().describe("The user to whom the repository belongs.").optional(),
+            owner: z.string().describe("The user to whom the repository belongs.").default(repo_owner),
             repo: z.string().describe("Repository who details the user wants.")
         }).shape,
         outputSchema: RepoDetailsSchema.shape
@@ -184,7 +185,7 @@ server.registerTool(
         title: "Fork a repository.",
         description: "Forking a repository user wants.",
         inputSchema: z.object({
-            owner: z.string().describe("The owner of the repository.").optional(),
+            owner: z.string().describe("The owner of the repository.").default(repo_owner),
             repo: z.string().describe("The repository user wants to fork."),
             my_fork_name: z.string().describe("The Fork name for the repository.")
         }).shape,
@@ -210,7 +211,7 @@ server.registerTool(
         title: "Star a repository.",
         description: "Starring a repository user wants.",
         inputSchema: z.object({
-            owner: z.string().describe("The owner of the repository.").optional(),
+            owner: z.string().describe("The owner of the repository.").default(repo_owner),
             repo: z.string().describe("The repository user wants to star.")
         }).shape,
     }, async ({ owner, repo }) => {
@@ -235,7 +236,7 @@ server.registerTool(
         title: "Unstar a repository.",
         description: "Unstarring a repository user wants.",
         inputSchema: z.object({
-            owner: z.string().describe("The owner of the repository.").optional(),
+            owner: z.string().describe("The owner of the repository.").default(repo_owner),
             repo: z.string().describe("The repository user wants to unstar.")
         }).shape,
     }, async ({ owner, repo }) => {
@@ -283,7 +284,7 @@ server.registerTool(
         title: "Close Issue",
         description: "Close an existing issue in a GitHub repository.",
         inputSchema: z.object({
-            owner: z.string().describe("The owner of the repository."),
+            owner: z.string().describe("The owner of the repository.").default(repo_owner),
             repo: z.string().describe("The name of the repository."),
             issue_number: z.number().int().nonnegative().describe("The number of the issue to close.")
         }).shape
@@ -940,6 +941,72 @@ server.registerTool(
     }
 );
 
+//--- Collaborators Management Tools ---//
+server.registerTool(
+    "add_collaborators",
+    {
+        title : "Add Collaborators",
+        description : "This tool allows you to add collaborators in a project.",
+        inputSchema : addCollaboratorsInputSchema.shape
+    }, async (args)=>{
+       try{
+           await addCollaborators(args);
+           return {
+            content : [{type : "text", text : `${args.username} is successfully added as a collaborator in repo : ${args.repo}`}]
+           }
+       } catch(err){
+           return {
+            content : [{type : "text", text : extractErrorMessage(err) || "An unknown error occurred."}],
+            isError : true
+           }
+       }
+    }
+);
+
+server.registerTool(
+    "remove_collaborators",
+    {
+        title : "Remove Collaborators",
+        description : "This tool allows you to remove collaborators from a project.",
+        inputSchema : removeCollaboratorsInputSchema.shape
+    }, async (args)=>{
+       try{
+           await removeCollaborators(args);
+           return {
+            content : [{type : "text", text : `${args.username} is successfully removed as a collaborator from repo : ${args.repo}`}]
+           }
+       } catch(err){
+           return {
+            content : [{type : "text", text : extractErrorMessage(err) || "An unknown error occurred."}],
+            isError : true
+           }
+       }
+    }
+);
+
+server.registerTool(
+    "list_collaborators",
+    {
+        title: "List Collaborators",
+        description: "This tool allows you to list all collaborators of a specific repository.",
+        inputSchema: listCollaboratorsInputSchema.shape,
+        outputSchema: listCollaboratorsOutputSchema.shape
+    }, async (args) => {
+        try {
+            const collaborators = await listCollaborators(args);
+            return {
+                content: [{ type: "text", text: JSON.stringify(collaborators) }],
+                structuredContent: { collaborators }
+            }
+        } catch (err) {
+            return {
+                content: [{ type: "text", text: extractErrorMessage(err) || "An unknown error occurred." }],
+                isError: true
+            }
+        }
+    }
+);
+
 //--- Tool to get Interaction data ---//
 server.registerTool(
     "get_logging_data",
@@ -999,6 +1066,9 @@ server.registerTool(
         description: "Fetch a list of recently sent Discord messages from the internal database.",
         inputSchema: z.object({
             limit: z.number().int().positive().default(10).describe("The number of recent messages to fetch.")
+        }).shape,
+        outputSchema : z.object({
+            messages : z.array(listingDiscordMessagesOutputSchema)
         }).shape
     }, async ({ limit }) => {
         try {
@@ -1016,8 +1086,37 @@ server.registerTool(
     }
 );
 
+//--- Discovery & System Tools ---//
+server.registerTool(
+    "list_available_tools",
+    {
+        title: "List Available Tools",
+        description: "Returns a categorized manifest of every tool available in the OmniBridge-MCP server.",
+        outputSchema: listAvailableToolsOutputSchema.shape
+    },
+    async () => {
+        const categoryMap = new Map<string, { name: string; description: string }[]>();
+
+        for (const tool of toolList) {
+            if (!categoryMap.has(tool.category)) categoryMap.set(tool.category, []);
+            categoryMap.get(tool.category)!.push({ name: tool.name, description: tool.description });
+        }
+
+        const manifest = {
+            server: "OmniBridge-MCP",
+            total_tools: toolList.length,
+            categories: Array.from(categoryMap.entries()).map(([name, tools]) => ({ name, tools }))
+        };
+
+        return {
+            content: [{ type: "text", text: JSON.stringify(manifest) }],
+            structuredContent: manifest
+        };
+    }
+);
+
 (async () => {
-    await ensureDatabaseReady();
+    // await ensureDatabaseReady();
     const transport = new StdioServerTransport();
     await server.connect(transport);
 })()

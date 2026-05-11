@@ -223,7 +223,7 @@ export async function getRepoDetails(owner : string = repo_owner, repo: string) 
 }
 
 // Function to fork a Repo
-export async function forkRepo(owner: string = repo_owner, repo: string, my_fork_name: string) {
+export async function forkRepo(owner: string, repo: string, my_fork_name: string) {
     let targetRepo: null | bigint = null;
     let logInput = `User want to fork ${owner}/${repo} as ${my_fork_name}.`;
     try {
@@ -258,7 +258,7 @@ export async function forkRepo(owner: string = repo_owner, repo: string, my_fork
 }
 
 // Function to star a Repo
-export async function starRepo(owner: string = repo_owner, repo: string) {
+export async function starRepo(owner: string, repo: string) {
     let targetRepo: null | bigint = null;
     let logInput = `User want to star ${owner}/${repo}.`;
     try {
@@ -297,7 +297,7 @@ export async function starRepo(owner: string = repo_owner, repo: string) {
 }
 
 // Function to unstar a Repo
-export async function unStarRepo(owner: string = repo_owner, repo: string) {
+export async function unStarRepo(owner: string, repo: string) {
     let targetRepo: null | bigint = null;
     let logInput = `User want to unstar ${owner}/${repo}.`;
     try {

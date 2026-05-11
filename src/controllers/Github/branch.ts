@@ -32,7 +32,7 @@ export async function createBranch(args: CreateBranchType) {
             logInput,
             `Branch '${args.branch}' successfully created in ${args.repo}.`,
             "success",
-            repo_owner,
+            args.owner,
             targetRepo
         );
     } catch (err) {
@@ -42,7 +42,7 @@ export async function createBranch(args: CreateBranchType) {
             logInput,
             errorMsg,
             "error",
-            repo_owner,
+            args.owner,
             targetRepo
         );
         throw err;
