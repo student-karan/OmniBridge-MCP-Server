@@ -61,10 +61,15 @@ Add this to your MCP client configuration (e.g., `claude_desktop_config.json`):
       "args": ["-y", "omnibridge-mcp@latest"],
       "env": {
         "GITHUB_PAT": "your_github_pat",
-        "GITHUB_REPO_OWNER": "your_username",
-        "DATABASE_URL": "mysql://root:password@localhost:3306/omnibridge_db",
-        "DISCORD_BOT_TOKEN": "your_token",
-        "DISCORD_CHANNEL_ID": "your_id"
+        "GITHUB_REPO_OWNER": "your_github_username",
+        "DATABASE_HOST": "localhost",
+        "DATABASE_PORT": "3306",
+        "DATABASE_USER": "root",
+        "DATABASE_PASSWORD": "your_password",
+        "DATABASE_NAME": "omnibridge_db",
+        "DATABASE_URL": "mysql://root:your_password@localhost:3306/omnibridge_db",
+        "DISCORD_BOT_TOKEN": "your_discord_bot_token",
+        "DISCORD_CHANNEL_ID": "your_discord_channel_id"
       }
     }
   }
