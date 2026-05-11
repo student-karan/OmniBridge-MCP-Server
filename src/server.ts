@@ -1116,7 +1116,7 @@ server.registerTool(
 );
 
 (async () => {
-    // await ensureDatabaseReady();
+    await ensureDatabaseReady();
     const transport = new StdioServerTransport();
     await server.connect(transport);
 })()
