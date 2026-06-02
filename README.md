@@ -2,8 +2,6 @@
 
 OmniBridge-MCP is a production-grade **Model Context Protocol (MCP)** server that unifies the developer's ecosystem. It acts as a sophisticated bridge connecting AI agents (Claude, ChatGPT, etc.) to **GitHub** and **Discord**, enabling "AI-native" workflows for modern development teams.
 
-Developed for **GTBIT (GGSIPU)** as a major college project.
-
 ---
 
 ## ✨ Key Features
@@ -32,19 +30,9 @@ Initially, this project considered SQLite for its simplicity. However, for a pro
 - **macOS/Linux:** Use `brew install mysql` or `apt install mysql-server`.
 
 ### 2. Prepare the Database
-Log into your MySQL client and run:
+Log into your MySQL client (e.g., MySQL Workbench or CLI) and run:
 ```sql
 CREATE DATABASE omnibridge_db;
-```
-
-### 3. Environment Variables
-Create a `.env` file in the root directory:
-```env
-GITHUB_PAT=your_github_personal_access_token
-GITHUB_REPO_OWNER=your_github_username
-DATABASE_URL="mysql://user:password@localhost:3306/omnibridge_db"
-DISCORD_BOT_TOKEN=your_discord_bot_token
-DISCORD_CHANNEL_ID=your_channel_id
 ```
 
 ---
@@ -75,6 +63,35 @@ Add this to your MCP client configuration (e.g., `claude_desktop_config.json`):
   }
 }
 ```
+
+---
+
+## 🔑 Acquiring Credentials
+
+To use OmniBridge-MCP, you will need to gather several keys and IDs. Follow these steps:
+
+### 🐙 GitHub Personal Access Token (PAT)
+1. Navigate to **[GitHub Settings](https://github.com/settings/tokens)** -> **Developer settings** -> **Personal access tokens** -> **Tokens (classic)**.
+2. Click **Generate new token (classic)**.
+3. Give it a descriptive name and select the following scopes:
+   - `repo` (Full control of private repositories)
+   - `workflow` (Update GitHub Action workflows)
+   - `admin:repo_hook` (Full control of repository hooks)
+   - `user` (Update your profile)
+4. Click **Generate token** and copy it immediately (you won't see it again).
+
+### 💬 Discord Bot Token & Channel ID
+
+**A. Create a Discord Bot:**
+1. Visit the **[Discord Developer Portal](https://discord.com/developers/applications)** and click **New Application**.
+2. Name your application (e.g., "OmniBridge Bot").
+3. Go to the **Bot** tab and click **Reset Token** (or **Copy**) to secure your bot token.
+4. Scroll down to **Privileged Gateway Intents** and enable **Guild Members Intent** and **Message Content Intent**.
+5. Use the **OAuth2** -> **URL Generator** to invite the bot to your server with `Send Messages` and `View Channels` permissions.
+
+**B. Get your Channel ID:**
+1. Open Discord, go to **User Settings** -> **Advanced** and enable **Developer Mode**.
+2. Right-click the channel where you want the bot to post and select **Copy Channel ID**.
 
 ---
 
